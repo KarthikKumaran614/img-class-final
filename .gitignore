@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Data
+data/
+*.tar.gz
+*.zip
+
+# Models
+# outputs/*.pth
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+frontend_react/node_modules/
