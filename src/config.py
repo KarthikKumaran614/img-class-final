@@ -10,7 +10,7 @@ RESNET_BASELINE_PATH = os.path.join(OUTPUT_DIR, 'resnet_baseline.pth')
 RESNET_REFINED_PATH = os.path.join(OUTPUT_DIR, 'resnet_refined.pth')
 
 # Model Selection
-MODEL_TYPE = 'resnet18'  # Options: 'simplecnn' or 'resnet18'
+MODEL_TYPE = 'simplecnn'  # Options: 'simplecnn' or 'resnet18'
 
 # Hyperparameters
 BATCH_SIZE = 64

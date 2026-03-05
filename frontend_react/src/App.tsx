@@ -101,6 +101,23 @@ const App: React.FC = () => {
         }
     };
 
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const file = e.dataTransfer.files?.[0];
+        if (file) {
+            setSelectedFile(file);
+            const reader = new FileReader();
+            reader.onload = (ev) => setPreviewUrl(ev.target?.result as string);
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleClassify = async () => {
         if (!selectedFile) return;
         setLoading(true);
@@ -300,7 +317,7 @@ const App: React.FC = () => {
                         <div className="absolute -inset-2 bg-gradient-to-r from-primary/10 to-accent/10 rounded-[2.5rem] blur-xl opacity-50 -z-10 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                         <div className="bg-card border rounded-[2rem] p-2 relative shadow-2xl overflow-hidden backdrop-blur-sm">
-                            <div className="bg-background/80 rounded-[1.5rem] p-8 md:p-12 relative group/dropzone overflow-hidden cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                            <div className="bg-background/80 rounded-[1.5rem] p-8 md:p-12 relative group/dropzone overflow-hidden cursor-pointer" onClick={() => fileInputRef.current?.click()} onDragOver={handleDragOver} onDrop={handleDrop}>
                                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 
                                 {/* Decorative Tech overlays */}
@@ -352,7 +369,10 @@ const App: React.FC = () => {
                                                 type="radio"
                                                 name="model"
                                                 checked={selectedModel === m}
-                                                onChange={() => setSelectedModel(m)}
+                                                onChange={() => {
+                                                    setSelectedModel(m);
+                                                    setResult(null);
+                                                }}
                                                 className="sr-only"
                                             />
                                             <div className={cn(
@@ -413,23 +433,33 @@ const App: React.FC = () => {
                     {/* Results Section */}
                     {result && (
                         <section className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-3xl font-black tracking-tight flex items-center gap-3">
-                                    <Search className="w-8 h-8 text-primary" />
-                                    Classification Results
-                                </h3>
-                                <InteractiveHoverButton text="New Image" className="w-40" onClick={handleReset} />
-                            </div>
-
-                            {selectedModel === 'compare' ? (
-                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
-                                    {['baseline', 'refined'].map(m => {
-                                        const r = (result as ComparisonResult)[m as keyof ComparisonResult];
-                                        return r ? <ResultCard key={m} r={r} /> : <div key={m} className="p-12 text-center text-muted-foreground border rounded-3xl">{m === 'baseline' ? 'Baseline' : 'Refined'} model not available</div>
-                                    })}
+                            {('error' in result) ? (
+                                <div className="p-12 text-center text-destructive border border-destructive/20 rounded-3xl bg-destructive/10">
+                                    <h3 className="text-2xl font-bold mb-2">Error Processing Image</h3>
+                                    <p>{(result as any).error}</p>
+                                    <button onClick={handleReset} className="mt-4 px-6 py-2 bg-destructive text-destructive-foreground rounded-full font-semibold">Try Again</button>
                                 </div>
                             ) : (
-                                <ResultCard r={result as ClassificationResult} />
+                                <>
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-3xl font-black tracking-tight flex items-center gap-3">
+                                            <Search className="w-8 h-8 text-primary" />
+                                            Classification Results
+                                        </h3>
+                                        <InteractiveHoverButton text="New Image" className="w-40" onClick={handleReset} />
+                                    </div>
+
+                                    {selectedModel === 'compare' ? (
+                                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
+                                            {['baseline', 'refined'].map(m => {
+                                                const r = (result as ComparisonResult)[m as keyof ComparisonResult];
+                                                return r ? <ResultCard key={m} r={r} /> : <div key={m} className="p-12 text-center text-muted-foreground border rounded-3xl">{m === 'baseline' ? 'Baseline' : 'Refined'} model not available</div>
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <ResultCard r={result as ClassificationResult} />
+                                    )}
+                                </>
                             )}
                         </section>
                     )}
